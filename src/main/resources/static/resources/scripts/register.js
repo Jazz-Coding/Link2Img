@@ -13,7 +13,7 @@ async function handleRegister(event) {
     console.log(`Sending: ${requestBody}}`)
 
     try {
-        const response = await fetch('http://link2img.net/register', {
+        const response = await fetch('https://link2img.net/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -29,9 +29,9 @@ async function handleRegister(event) {
         console.log(data.message);
 
         // If the register is successful, set the logged_in state and save the authorization token.
-        window.localStorage.setItem('authToken', data.authToken);
+        //window.localStorage.setItem('authToken', data.authToken);
         window.localStorage.setItem('loggedIn', "true");
-        location.href='../index.html'
+        location.href='../'
 
     } catch (error) {
         console.error('Error during register:', error);

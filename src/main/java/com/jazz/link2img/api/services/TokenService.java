@@ -3,6 +3,7 @@ package com.jazz.link2img.api.services;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.servlet.http.Cookie;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -24,11 +25,25 @@ public class TokenService {
                 .compact();
     }
 
+    public Cookie storeInCookie(String token){
+        Cookie cookie = new Cookie("authToken", token);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        return cookie;
+    }
+
+    public Cookie nullCookie(){ // Used for cookie invalidation.
+        Cookie cookie = new Cookie("authToken", null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        return cookie;
+    }
+
     public String extractUsername(String token){
         return extractClaims(token).getSubject();
-    }
-    public String extractUsernameHeader(String authorizationHeader){
-        return extractUsername(authorizationHeader.substring(7));
     }
 
     public Date extractExpiration(String token) {
@@ -42,10 +57,6 @@ public class TokenService {
 
     public boolean checkToken(String token) {
         return !isTokenExpired(token);
-    }
-
-    public boolean checkTokenHeader(String authorizationHeader){
-        return checkToken(authorizationHeader.substring(7));
     }
 
     private Claims extractClaims(String token) {

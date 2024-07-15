@@ -2,6 +2,7 @@ package com.jazz.link2img.api.services;
 
 import com.jazz.link2img.api.model.UserDetails;
 import com.jazz.link2img.api.repository.UserRepository;
+import jakarta.servlet.http.Cookie;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,8 @@ public class LoginService {
             String passwordInDb = userInDb.get().getPassword();
             if(passwordEncoder.matches(password, passwordInDb)){
                 log.info("Successful.");
-                return tokenService.generateToken(username);
+                String authToken = tokenService.generateToken(username);
+                return authToken;
             } else {
                 log.info("Incorrect password.");
                 return getErrorCode();

@@ -19,6 +19,11 @@ public class SecurityConfiguration {
                     httpSecurityHeadersConfigurer.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable);
                 })
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .logout(logOut -> logOut
+                        .deleteCookies("authToken")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .permitAll())
                 .build();
     }
 

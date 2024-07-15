@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.jazz</groupId>
 	<artifactId>link2img</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>prod</version>
 	<name>link2img</name>
 	<description>Link2Img API</description>
 	<url/>

@@ -1,10 +1,12 @@
 const config = {
-    uploadUrl: 'http://link2img.net/upload'
+    uploadUrl: 'https://link2img.net/upload',
+    logoutUrl: 'https://link2img.net/logout'
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     let cachedImageFile = null;
     let cachedLink = "";
+    let uploaded = false;
 
 
     let visibilityPublic = window.localStorage.getItem("defaultVisibility")==="true";
@@ -30,20 +32,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutButton = document.getElementById('logoutButton');
     const registerButton = document.getElementById('registerButton');
 
+    const imageSelectionError = document.getElementById("imageSelectionError");
+
     // Initial UI setup
     initVisibility(visibilityPublic);
     updateLoggedInUI();
-    /*privateButton.classList.add("disable");
-    setImagePrivate();
-    updateLoggedInUI();*/
+    imageUploadBox.style.cursor = 'pointer';
 
     // Event Listeners
-    /*loginButton.addEventListener('click', handleLogin);*/
     logoutButton.addEventListener('click', handleLogout);
+
     imageUploadBox.addEventListener('dragover', handleDragOver);
     imageUploadBox.addEventListener('dragleave', handleDragLeave);
     imageUploadBox.addEventListener('drop', handleDrop);
-    imageUploadBox.addEventListener('click', () => fileElem.click());
+    imageUploadBox.addEventListener('click', () => {
+        if(uploaded) return;
+        fileElem.click();
+    });
+
     fileElem.addEventListener('change', handleFileChange);
     uploadButton.addEventListener('click', uploadFile);
     copyLinkButton.addEventListener('click', copyLink);
@@ -51,23 +57,31 @@ document.addEventListener('DOMContentLoaded', () => {
     privateButton.addEventListener('click', setImagePrivate);
     publicButton.addEventListener('click', setImagePublic);
 
-    function handleLogout() {
-        window.localStorage.setItem('authToken', "");
+
+    async function sendLogoutRequest(){
+        const response = await fetch(config.logoutUrl, {method:'POST'});
+    }
+
+    async function handleLogout() {
+        //window.localStorage.setItem('authToken', "");
+        await sendLogoutRequest();
         window.localStorage.setItem('loggedIn', "false");
-        location.href='index.html';
         location.reload();
     }
 
     function handleDragOver(event) {
+        if(uploaded) return;
         event.preventDefault();
         imageUploadBox.classList.add('dragover');
     }
 
     function handleDragLeave() {
+        if(uploaded) return;
         imageUploadBox.classList.remove('dragover');
     }
 
     function handleDrop(event) {
+        if(uploaded) return;
         event.preventDefault();
         imageUploadBox.classList.remove('dragover');
         const files = event.dataTransfer.files;
@@ -81,9 +95,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleFiles(files) {
         if (files.length > 0) {
-            cachedImageFile = files[0];
-            previewImage();
+            const selectedFile = files[0];
+
+            // Validate file.
+            if(isFileValid(selectedFile)) {
+                imageSelectionError.style.display='none';
+                cachedImageFile = selectedFile;
+                previewImage();
+            } else {
+                // Display an error message.
+                imageSelectionError.style.display='block';
+                clearPreview();
+            }
         }
+    }
+
+    function clearPreview(){
+        preview.src = "";
+        imageUploadBox.style.width = '60vh';
+        imageUploadBox.style.height = '60vh';
+        uploadButton.style.display = 'none';
+        uploadPlus.style.display = 'block';
+    }
+
+    function isFileValid(file){
+        const  fileType = file['type'];
+        const validImageTypes = ['image/gif', 'image/jpeg', 'image/png'];
+        return validImageTypes.includes(fileType);
     }
 
     function previewImage() {
@@ -102,7 +140,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function uploadFile() {
         if (!cachedImageFile) {
-            alert('No file selected!');
             return;
         }
 
@@ -110,14 +147,14 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('file', cachedImageFile);
         formData.append('isPublic', visibilityPublic);
 
-        const authToken = logged_in ? window.localStorage.getItem("authToken") : "";
+        //const authToken = logged_in ? window.localStorage.getItem("authToken") : "";
 
         try {
             const response = await fetch(config.uploadUrl, {
                 method: 'POST',
-                headers: {
+                /*headers: {
                     'Authorization': 'Bearer ' + authToken
-                },
+                },*/
                 body: formData
             });
             const data = await response.text();
@@ -125,6 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
             preUploadUI.style.display = 'none';
             linkBoxContainer.style.display = 'flex';
             linkBox.value = cachedLink;
+
+            // Make non-interactive after this point.
+            uploaded = true;
+            imageUploadBox.style.cursor = 'default';
         } catch (error) {
             cachedLink = "";
             console.error('Error uploading file:', error);
@@ -137,7 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
         linkBox.select();
         navigator.clipboard.writeText(linkBox.value)
             .then(() => {
-                // Optional: Provide user feedback, e.g., change button text to "Copied!"
                 copyLinkButton.innerHTML = 'Copied';
             })
             .catch(err => console.error('Error copying link:', err));
@@ -201,11 +241,18 @@ document.addEventListener('DOMContentLoaded', () => {
             loginButton.style.display = 'none';
             registerButton.style.display = 'none';
             logoutButton.style.display = 'inline';
+
+            // Show private upload option.
+            privateButton.style.display = 'inline';
         } else {
             // Show Login & Register
             loginButton.style.display = 'inline';
             registerButton.style.display = 'inline';
             logoutButton.style.display = 'none';
+
+            // Hide private upload option.
+            privateButton.style.display = 'none';
+            setImagePublic();
         }
     }
 });

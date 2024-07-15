@@ -17,10 +17,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
+/**
+ * Handles image uploading endpoints.
+ */
 @RestController
 @CrossOrigin
-public class MainController {
-    private static final Logger log = LoggerFactory.getLogger(MainController.class);
+public class UploadController {
+    private static final Logger log = LoggerFactory.getLogger(UploadController.class);
 
     @Autowired
     private UploadService uploadService;
@@ -39,18 +42,18 @@ public class MainController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file, @RequestParam("isPublic") boolean isPublic, @RequestHeader("Authorization") String authorization){
+    public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file, @RequestParam("isPublic") boolean isPublic, @CookieValue(value = "authToken", required = false) String authToken){
         String result;
 
         if(isPublic){
             result = uploadService.handleFileUpload(file, true, "");
         } else {
-            // Validate the authorization.
-            boolean valid = tokenService.checkTokenHeader(authorization);
+            // Validate the authToken.
+            boolean valid = tokenService.checkToken(authToken);
             if(!valid) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
             // Proceed.
-            String username = tokenService.extractUsernameHeader(authorization);
+            String username = tokenService.extractUsername(authToken);
             result = uploadService.handleFileUpload(file, false, username);
         }
 
@@ -64,19 +67,19 @@ public class MainController {
     }
 
     @GetMapping("/private/uploads/{filename}")
-    public ResponseEntity<byte[]> downloadPrivate(@PathVariable String filename, @RequestHeader("Authorization") String authorization){
-        // Validate the authorization of requests to /private.
+    public ResponseEntity<byte[]> downloadPrivate(@PathVariable String filename, @CookieValue("authToken") String authToken){
+        // Validate the authToken of requests to /private.
 
         // File actually exists?
         boolean fileExists = fileExists(filename);
         if(!fileExists) return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 
         // Token hasn't expired?
-        boolean tokenFresh = tokenService.checkTokenHeader(authorization);
+        boolean tokenFresh = tokenService.checkToken(authToken);
         if(!tokenFresh) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
         // User has access to this file?
-        String username = tokenService.extractUsernameHeader(authorization);
+        String username = tokenService.extractUsername(authToken);
 
         FileEntry fileEntry = fileRepository.findById(filename).get();
         boolean userHasAccess = fileEntry.getOwnerUsername().equals(username);
