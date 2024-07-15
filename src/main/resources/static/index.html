@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Home Page</title>
+
+        <link href="resources/styles/main.css" rel="stylesheet">
+    </head>
+
+    <body>
+        <div class="button-panel">
+            <button class="button1" id="loginButton" onclick="location.href='pages/login.html';">
+                Login
+            </button>
+            <button class="button2" id="logoutButton">
+                Logout
+            </button>
+            <button class="button3" id="registerButton" onclick="location.href='pages/register.html';">
+                Register
+            </button>
+        </div>
+
+        <div class="main">
+            <div class="image-zone">
+                <div class="image-upload-box" id="imageUploadBox">
+                    <p id="uploadPlus" class="upload-plus">+</p>
+                    <input type="file" id="fileElem" style="display: none" accept="image/*">
+                    <img id="preview" src="" alt="">
+                </div>
+                <!--<p id="uploadStatus">Upload an image above...</p>-->
+                <div class="visibility-selector-grid" id="preUploadUI">
+                    <button class="visibility-button-private" id="privateButton">
+                        Private
+                    </button>
+                    <button class="visibility-button-public" id="publicButton">
+                        Public
+                    </button>
+                    <p id="visibilityDescription">
+                    </p>
+                    <button class="upload-button" id="uploadButton">
+                        Upload
+                    </button>
+                </div>
+                <div class="link-box" id="linkBoxContainer">
+                    <p>Link: </p>
+                    <input id="linkBox" class="search_bar" type="text" placeholder="">
+                    <button class="copy-link-button" id="copyLinkButton">
+                        Copy
+                    </button>
+                    <button class="open-in-tab-button" id="newTabButton">
+                        Open in new tab
+                    </button>
+                    <button class="restart-button" id="uploadMoreButton" onclick="location.reload()">
+                        Upload more
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script defer src="script.js"></script>
+    </body>
+</html>
